@@ -242,6 +242,10 @@ class Storage(db.Storage, dbus.service.Object):
     def RemoveCategory(self, id):
         self.remove_category(id)
 
+    @dbus.service.method("org.gnome.Hamster", in_signature='ssb', out_signature='as')
+    def MergeCategories(self, from_name, to_name, dry_run):
+        return self.merge_categories(from_name, to_name, dry_run)
+
     @dbus.service.method("org.gnome.Hamster", out_signature='a(is)')
     def GetCategories(self):
         return [(category['id'], category['name']) for category in self.get_categories()]

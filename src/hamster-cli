@@ -282,6 +282,26 @@ class HamsterClient(object):
         self._list(start_time, end_time, search)
 
 
+    def merge_categories(self, *args):
+        """merge a group of categories"""
+        assert len(args) == 2
+        from_category = args[0]
+        to_category = args[1]
+
+        moved_activities = self.storage.merge_categories(from_category, to_category, dry_run=True)
+        if len(moved_activities) == 0:
+            print('No activities are affected.')
+            return
+
+        print('Will move the following activities in category `{from_category}`` to `{to_category}`:'.format(
+            from_category=from_category,
+            to_category=to_category
+        ))
+        print('\n'.join('  '+act for act in moved_activities))
+        if input('Proceed? [y/N] ') == 'y':
+            moved_activities = self.storage.merge_categories(from_category, to_category, dry_run=False)
+            print('Moved {} activities.'.format(len(moved_activities)))
+
     def _list(self, start_time, end_time, search=""):
         """Print a listing of activities"""
         facts = self.storage.get_facts(start_time, end_time, search)
@@ -368,6 +388,8 @@ Actions:
     * current: Print current activity
     * activities: List all the activities names, one per line.
     * categories: List all the categories names, one per line.
+    * merge-categories <from-category> <to-category>:
+      Merge the activities of one category into another.
 
     * overview / statistics / about: launch specific window
 
@@ -413,7 +435,7 @@ Example usage:
     # hamster_logger for the rest
     hamster_logger.setLevel(args.log_level)
 
-    command = args.action
+    command = args.action.replace('-', '_')
     if hasattr(hamster_client, command):
         getattr(hamster_client, command)(*args.action_args)
     else:

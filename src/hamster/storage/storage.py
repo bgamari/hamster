@@ -118,6 +118,36 @@ class Storage(object):
         self.__remove_category(id)
         self.activities_changed()
 
+    def merge_categories(self, from_category_name, to_category_name, dry_run):
+        self.start_transaction()
+
+        from_category_id = self.get_category_id(from_category_name)
+        to_category_id = self.get_category_id(to_category_name)
+        if from_category_id is None or to_category_id is None:
+            return []
+
+        to_activities = {
+            act['name']: act['id']
+            for act in self.get_category_activities(to_category_id)
+        }
+
+        moved_activities = []
+        for activity in self.get_category_activities(from_category_id):
+            to_activity_id = to_activities.get(activity['name'])
+            moved_activities.append(activity['name'])
+            if dry_run:
+                continue
+            elif to_activity_id is not None:
+                self.__merge_activities(activity['id'], to_activity_id)
+            else:
+                self.update_activity(activity['id'], activity['name'], to_category_id)
+
+        if not dry_run:
+            self.remove_category(from_category_id)
+            self.activities_changed()
+
+        self.end_transaction()
+        return moved_activities
 
     def get_categories(self):
         return self.__get_categories()

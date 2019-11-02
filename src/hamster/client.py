@@ -255,3 +255,6 @@ class Storage(gobject.GObject):
 
     def add_category(self, name):
         return self.conn.AddCategory(name)
+
+    def merge_categories(self, from_name, to_name, dry_run):
+        return self.conn.MergeCategories(from_name, to_name, dry_run)

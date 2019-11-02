@@ -210,6 +210,15 @@ class Storage(storage.Storage):
     def __get_categories(self):
         return self.fetchall("SELECT id, name FROM categories ORDER BY lower(name)")
 
+    def __merge_activities(self, from_id, to_id):
+        query = """
+                   UPDATE facts
+                       SET activity_id = ?
+                     WHERE activity_id = ?
+        """
+        self.execute(query, (to_id, from_id))
+        self.__remove_activity(from_id)
+
     def __update_activity(self, id, name, category_id):
         query = """
                    UPDATE activities
